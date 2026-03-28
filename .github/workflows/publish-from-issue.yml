@@ -1,0 +1,51 @@
+name: Publish from Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  publish:
+    if: github.event.issue.user.login == 'dtinth' && startsWith(github.event.issue.title, 'publish ')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: jdx/mise-action@v4
+
+      - name: Parse issue title
+        id: parse
+        env:
+          TITLE: ${{ github.event.issue.title }}
+        run: |
+          if [[ "$TITLE" =~ ^publish[[:space:]]+(@?[^@[:space:]]+)@([^[:space:]]+)$ ]]; then
+            echo "package=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "version=${BASH_REMATCH[2]}" >> $GITHUB_OUTPUT
+          else
+            echo "Title does not match expected format: $TITLE"
+            exit 1
+          fi
+
+      - name: Publish doc
+        id: publish-doc
+        uses: ./.github/actions/publish-doc
+        with:
+          package: ${{ steps.parse.outputs.package }}
+          version: ${{ steps.parse.outputs.version }}
+          rclone-secret-access-key: ${{ secrets.RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY }}
+
+      - name: Comment on issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          URL: ${{ steps.publish-doc.outputs.url }}
+        run: gh issue comment "$ISSUE_NUMBER" --body "Published: $URL"
+
+      - name: Close issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: gh issue close "$ISSUE_NUMBER"

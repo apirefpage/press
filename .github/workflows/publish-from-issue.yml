@@ -47,11 +47,9 @@ jobs:
           PUBLISH_OUTCOME: ${{ steps.publish-doc.outcome }}
         run: |
           if [[ "$PUBLISH_OUTCOME" == "success" ]]; then
-            BODY="Published: $URL
-
-Run: $RUN_URL"
+            BODY=$(printf 'Published: %s\n\nRun: %s' "$URL" "$RUN_URL")
           else
-            BODY=":x: Publish failed. Run: $RUN_URL"
+            BODY=$(printf ':x: Publish failed. Run: %s' "$RUN_URL")
           fi
           gh issue comment "$ISSUE_NUMBER" --body "$BODY"
 

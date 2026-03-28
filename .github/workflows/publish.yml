@@ -1,0 +1,22 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run publish
+        run: |
+          docker run \
+            -e RCLONE_CONFIG_PUBLISH_TYPE=local \
+            -e APIREF_STORAGE_BUCKET=publish:/dist \
+            --rm \
+            -v $PWD/dist:/dist \
+            ghcr.io/dtinth/apiref:develop \
+            publish visual-storyboard@0.3.6

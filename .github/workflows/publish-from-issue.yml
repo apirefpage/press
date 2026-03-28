@@ -38,13 +38,25 @@ jobs:
           rclone-secret-access-key: ${{ secrets.RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY }}
 
       - name: Comment on issue
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           URL: ${{ steps.publish-doc.outputs.url }}
-        run: gh issue comment "$ISSUE_NUMBER" --body "Published: $URL"
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PUBLISH_OUTCOME: ${{ steps.publish-doc.outcome }}
+        run: |
+          if [[ "$PUBLISH_OUTCOME" == "success" ]]; then
+            BODY="Published: $URL
+
+Run: $RUN_URL"
+          else
+            BODY=":x: Publish failed. Run: $RUN_URL"
+          fi
+          gh issue comment "$ISSUE_NUMBER" --body "$BODY"
 
       - name: Close issue
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}

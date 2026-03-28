@@ -31,14 +31,14 @@ jobs:
             publish "$PACKAGE_NAME@$PACKAGE_VERSION"
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist
 
       - name: Upload tmp artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tmp
           path: tmp

@@ -15,16 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Create dist directory
-        run: mkdir -p dist && chmod 777 dist
+      - name: Create dist and tmp directories
+        run: mkdir -p dist tmp && chmod 777 dist tmp
 
       - name: Run publish
         run: |
           docker run \
             -e RCLONE_CONFIG_PUBLISH_TYPE=local \
             -e APIREF_STORAGE_BUCKET=publish:/dist \
+            -e TMPDIR=/workspace/tmp \
             --rm \
             -v $PWD/dist:/dist \
+            -v $PWD/tmp:/workspace/tmp \
             ghcr.io/dtinth/apiref:develop \
             publish "$PACKAGE_NAME@$PACKAGE_VERSION"
 
@@ -33,3 +35,11 @@ jobs:
         with:
           name: dist
           path: dist
+
+      - name: Upload tmp artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmp
+          path: tmp
+          if-no-files-found: ignore

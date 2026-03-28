@@ -23,3 +23,9 @@ jobs:
             -v $PWD/dist:/dist \
             ghcr.io/dtinth/apiref:develop \
             publish visual-storyboard@0.3.6
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist

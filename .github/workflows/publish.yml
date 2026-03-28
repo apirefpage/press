@@ -36,6 +36,10 @@ jobs:
           name: dist
           path: dist
 
+      - name: Fix tmp directory permissions
+        if: always()
+        run: sudo chown -R $(id -u):$(id -g) tmp
+
       - name: Upload tmp artifact
         if: always()
         uses: actions/upload-artifact@v6

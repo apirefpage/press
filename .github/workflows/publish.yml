@@ -11,6 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Create dist directory
+        run: mkdir -p dist && chmod 777 dist
+
       - name: Run publish
         run: |
           docker run \

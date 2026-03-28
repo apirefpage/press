@@ -1,0 +1,76 @@
+name: Publish Doc
+description: Publishes a documentation package to npm.apiref.page
+
+inputs:
+  package:
+    description: Package name
+    required: true
+  version:
+    description: Package version
+    required: true
+  rclone-secret-access-key:
+    description: Rclone secret access key for S3
+    required: true
+
+outputs:
+  url:
+    description: Published URL
+    value: "https://npm.apiref.page/package/${{ inputs.package }}/v/${{ inputs.version }}/index.html"
+
+runs:
+  using: composite
+  steps:
+    - name: Create dist and tmp directories
+      shell: bash
+      run: mkdir -p dist tmp && chmod 777 dist tmp
+
+    - name: Run publish
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        docker run \
+          -e RCLONE_CONFIG_PUBLISH_TYPE=local \
+          -e APIREF_STORAGE_BUCKET=publish:/dist \
+          -e TMPDIR=/workspace/tmp \
+          --rm \
+          -v $PWD/dist:/dist \
+          -v $PWD/tmp:/workspace/tmp \
+          ghcr.io/dtinth/apiref:develop \
+          publish "$PACKAGE@$VERSION"
+
+    - name: Sync to S3
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        VERSION: ${{ inputs.version }}
+        RCLONE_CONFIG_PUBLISH_TYPE: s3
+        RCLONE_CONFIG_PUBLISH_PROVIDER: Linode
+        RCLONE_CONFIG_PUBLISH_ACCESS_KEY_ID: 05Y2B5NF6AQ18V5ZZFQP
+        RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY: ${{ inputs.rclone-secret-access-key }}
+        RCLONE_CONFIG_PUBLISH_ACL: public-read
+        RCLONE_CONFIG_PUBLISH_ENDPOINT: us-sea-1.linodeobjects.com
+      run: |
+        mise exec -- rclone sync \
+          "dist/package/$PACKAGE/v/$VERSION/" \
+          "publish:npm.apiref.page/package/$PACKAGE/v/$VERSION/"
+
+    - name: Upload dist artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: dist
+        path: dist
+
+    - name: Fix tmp directory permissions
+      if: always()
+      shell: bash
+      run: sudo chown -R $(id -u):$(id -g) tmp
+
+    - name: Upload tmp artifact
+      if: always()
+      uses: actions/upload-artifact@v6
+      with:
+        name: tmp
+        path: tmp
+        if-no-files-found: ignore

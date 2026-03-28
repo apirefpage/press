@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+env:
+  PACKAGE_NAME: visual-storyboard
+  PACKAGE_VERSION: 0.3.6
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,7 +26,7 @@ jobs:
             --rm \
             -v $PWD/dist:/dist \
             ghcr.io/dtinth/apiref:develop \
-            publish visual-storyboard@0.3.6
+            publish "$PACKAGE_NAME@$PACKAGE_VERSION"
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4

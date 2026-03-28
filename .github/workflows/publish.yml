@@ -15,6 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - uses: jdx/mise-action@v4
+
       - name: Create dist and tmp directories
         run: mkdir -p dist tmp && chmod 777 dist tmp
 
@@ -29,6 +31,16 @@ jobs:
             -v $PWD/tmp:/workspace/tmp \
             ghcr.io/dtinth/apiref:develop \
             publish "$PACKAGE_NAME@$PACKAGE_VERSION"
+
+      - name: Sync to S3
+        run: mise exec -- rclone sync dist/package/$PACKAGE_NAME/v/$PACKAGE_VERSION/ publish:npm.apiref.page/package/$PACKAGE_NAME/v/$PACKAGE_VERSION/
+        env:
+          RCLONE_CONFIG_PUBLISH_TYPE: s3
+          RCLONE_CONFIG_PUBLISH_PROVIDER: Linode
+          RCLONE_CONFIG_PUBLISH_ACCESS_KEY_ID: 05Y2B5NF6AQ18V5ZZFQP
+          RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY: ${{ secrets.RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_PUBLISH_ACL: public-read
+          RCLONE_CONFIG_PUBLISH_ENDPOINT: us-sea-1.linodeobjects.com
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v6

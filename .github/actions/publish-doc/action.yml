@@ -11,6 +11,9 @@ inputs:
   rclone-secret-access-key:
     description: Rclone secret access key for S3
     required: true
+  grist-api-key:
+    description: Grist API key for updating docs table
+    required: true
 
 outputs:
   url:
@@ -55,6 +58,35 @@ runs:
         mise exec -- rclone sync \
           "dist/package/$PACKAGE/v/$VERSION/" \
           "publish:npm.apiref.page/package/$PACKAGE/v/$VERSION/"
+
+    - name: Update Grist docs table
+      shell: bash
+      env:
+        PACKAGE: ${{ inputs.package }}
+        VERSION: ${{ inputs.version }}
+        GRIST_API_KEY: ${{ inputs.grist-api-key }}
+      run: |
+        DIST_SIZE=$(du -sb dist | awk '{print $1}')
+        curl -X PUT \
+          -H "Authorization: Bearer $GRIST_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d @- \
+          "https://apiref.getgrist.com/api/docs/rLWNJRqqXWRQ4u9ws1efSY/tables/Docs/records" <<EOF
+        {
+          "records": [
+            {
+              "require": {
+                "Package": "$PACKAGE",
+                "Version": "$VERSION"
+              },
+              "fields": {
+                "Published_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
+                "Size_bytes": $DIST_SIZE
+              }
+            }
+          ]
+        }
+        EOF
 
     - name: Upload dist artifact
       uses: actions/upload-artifact@v6

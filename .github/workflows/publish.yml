@@ -28,6 +28,7 @@ jobs:
           package: ${{ inputs.package || 'visual-storyboard' }}
           version: ${{ inputs.version || '0.3.6' }}
           rclone-secret-access-key: ${{ secrets.RCLONE_CONFIG_PUBLISH_SECRET_ACCESS_KEY }}
+          grist-api-key: ${{ secrets.GRIST_API_KEY }}
 
       - name: Summary
         run: echo "[${{ steps.publish-doc.outputs.url }}](${{ steps.publish-doc.outputs.url }})" >> $GITHUB_STEP_SUMMARY

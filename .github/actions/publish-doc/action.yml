@@ -66,7 +66,7 @@ runs:
         VERSION: ${{ inputs.version }}
         GRIST_API_KEY: ${{ inputs.grist-api-key }}
         RUN_ID: ${{ github.run_id }}
-      run: node scripts/update-grist.ts
+      run: mise exec -- node scripts/update-grist.ts
 
     - name: Copy versions.json to S3
       shell: bash

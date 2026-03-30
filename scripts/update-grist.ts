@@ -1,7 +1,7 @@
 // @ts-check
 import { execFileSync } from 'node:child_process';
-import path from 'node:path';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 interface GristRecord {
   require: Record<string, string>;
@@ -40,14 +40,11 @@ async function queryVersions(pkg: string, gristApiKey: string): Promise<string[]
   return data.records.map((record) => record.fields.Version);
 }
 
-async function generateVersionsJson(pkg: string, versions: string[]): Promise<void> {
+async function generateVersionsJson(_pkg: string, versions: string[]): Promise<void> {
   const versionObjects = versions.map((v) => ({ v }));
   const content = { versions: versionObjects };
 
-  const distDir = path.join(process.cwd(), 'dist', 'package', pkg);
-  await fs.mkdir(distDir, { recursive: true });
-
-  const filePath = path.join(distDir, 'versions.json');
+  const filePath = path.join(process.cwd(), 'out', 'versions.json');
   await fs.writeFile(filePath, JSON.stringify(content, null, 2) + '\n');
   console.log(`Generated ${filePath}`);
 }

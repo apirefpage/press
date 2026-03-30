@@ -23,9 +23,9 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Create dist and tmp directories
+    - name: Create dist, tmp, out directories
       shell: bash
-      run: mkdir -p dist tmp && chmod 777 dist tmp
+      run: mkdir -p dist tmp out && chmod 777 dist tmp out
 
     - name: Run publish
       shell: bash
@@ -80,7 +80,7 @@ runs:
         RCLONE_CONFIG_PUBLISH_ENDPOINT: us-sea-1.linodeobjects.com
       run: |
         mise exec -- rclone copyto \
-          "dist/package/$PACKAGE/versions.json" \
+          "out/versions.json" \
           "publish:npm.apiref.page/package/$PACKAGE/versions.json"
 
     - name: Upload dist artifact

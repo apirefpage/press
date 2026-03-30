@@ -65,6 +65,7 @@ runs:
         PACKAGE: ${{ inputs.package }}
         VERSION: ${{ inputs.version }}
         GRIST_API_KEY: ${{ inputs.grist-api-key }}
+        RUN_ID: ${{ github.run_id }}
       run: |
         DIST_SIZE=$(du -sb dist | awk '{print $1}')
         curl -X PUT \
@@ -81,7 +82,8 @@ runs:
               },
               "fields": {
                 "Published_at": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
-                "Size_bytes": $DIST_SIZE
+                "Size_bytes": $DIST_SIZE,
+                "Run_ID": "$RUN_ID"
               }
             }
           ]

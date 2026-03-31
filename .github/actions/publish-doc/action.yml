@@ -40,7 +40,7 @@ runs:
           --rm \
           -v $PWD/dist:/dist \
           -v $PWD/tmp:/workspace/tmp \
-          ghcr.io/dtinth/apiref:develop \
+          ghcr.io/dtinth/apiref:main \
           publish "$PACKAGE@$VERSION"
 
     - name: Sync to S3
